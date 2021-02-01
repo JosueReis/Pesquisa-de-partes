@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">PesquisaDePartes</string>
+    <string name="title_activity_maps">Map</string>
+    <!--    <item name="fragment1" type="id" />-->
+</resources>
