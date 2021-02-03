@@ -33,7 +33,9 @@ import android.widget.Toast;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
     Button criar;
@@ -44,12 +46,14 @@ public class MainActivity extends AppCompatActivity {
     Button foto;
     Button mapa;
     Button exclui;
+    Button limparNome;
     LinearLayout linearHorizontalFilho1;
     LinearLayout linearHorizontalFilho2;
     LinearLayout linearVerticalPai;
     LinearLayout linearVerticalFilho3;
     LinearLayout layoutMestre;
     List<Tarefa> tarefas;
+    List<Tarefa> tarefasPesquisa;
     String getLocation;
     TextView textView;
     TextView labelNome;
@@ -60,8 +64,11 @@ public class MainActivity extends AppCompatActivity {
     EditText pesquisa;
     int a = 0;
     String b;
+    ArrayList nomeDoPesquisado;
     private AutoCompleteTextView autoComplete;
     private ArrayAdapter<String> adapter;
+    Set nomeDoPesquisadoHashSet;
+    int test;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,15 +79,21 @@ public class MainActivity extends AppCompatActivity {
 //        textViewNome = findViewById(R.id.pesquisa);
         excluirTudo = findViewById(R.id.excluirTudo);
         tarefaDAO = new TarefaDAO(getApplicationContext());
-//        autoComplete = findViewById(R.id.pesquisa);
+        autoComplete = findViewById(R.id.autoComplete);
         pesquisaNome = new ArrayList();
         scrollView = findViewById(R.id.scrollView);
+        nomeDoPesquisado = new ArrayList();
+        limparNome = findViewById(R.id.limparNome);
+        nomeDoPesquisadoHashSet = new HashSet();
+
+//        nomeDoPesquisado = new ArrayList(nomeDoPesquisadoHashSet);
 //        pesquisa = findViewById(R.id.pesquisa);
 //        l = new LinearLayout(getApplicationContext());
 //        foto = new Button(getApplicationContext());
 //        mapa = new Button(getApplicationContext());
         layoutMestre = findViewById(R.id.layoutMestre);
 //        getLocation = getIntent().getStringExtra("local");
+
 
 //        textView = findViewById(R.id.textView);
 //        textView.setText(getLocation);
@@ -99,7 +112,37 @@ public class MainActivity extends AppCompatActivity {
 //        linearHorizontalFilho2addView(mapa);
 //        layoutMestre.addView(l);
 //        pesquisaNome[0] = (String) textViewNome.getText();
+        autoComplete.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Tarefa tarefa = tarefaDAO.obtemNome(autoComplete.getText().toString());
+                layoutMestre.removeAllViews();
+                carregaPesquisas(tarefa);
+            }
+        });
 
+        if (autoComplete.getText().toString().equals("")){
+            autoComplete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    autoComplete.showDropDown();
+                }
+            });
+        }
+
+        limparNome.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                layoutMestre.removeAllViews();
+                autoComplete.setText("");
+                carregaPesquisas(null);
+                View v = getCurrentFocus();
+                if (v != null) {
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                }
+            }
+        });
 
         excluirTudo.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -273,8 +316,8 @@ public class MainActivity extends AppCompatActivity {
 //                int v = View.generateViewId();
 
                 tarefaDAO.salvar(timeStamp, null, "", "", "", "", "", "", "", "", "", "",
-                        "", "", "", "", "", "", "", "", "", "",null,null,
-                        null, null, null,null, null, null, null, null, null);
+                        "", "", "", "", "", "", "", "", "", "","","",
+                        "", "", "","", "", "", "", "", "");
 
                 tarefas = tarefaDAO.listar();
 
@@ -436,36 +479,60 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onStart() {
-        pesquisaNome = new ArrayList();
-        if (a == 0) {
-            a = 1;
-            tarefaDAO = new TarefaDAO(getApplicationContext());
-            tarefas = tarefaDAO.listar();
-            //        criar = findViewById(R.id.criar);
-            for (Tarefa t : tarefas) {
-                linearVerticalPai = new LinearLayout(getApplicationContext());
-                linearHorizontalFilho1 = new LinearLayout(getApplicationContext());
-                linearHorizontalFilho2 = new LinearLayout(getApplicationContext());
-                linearVerticalFilho3 = new LinearLayout(getApplicationContext());
+        carregaPesquisas(null);
+        super.onStart();
+    }
 
-                labelNome = new TextView(getApplicationContext());
-                textViewNome = new TextView(getApplicationContext());
+    private void carregaPesquisas(Tarefa tarefa) {
+        pesquisaNome = new ArrayList();
+//        if (a == 0) {
+//            a = 1;
+        tarefaDAO = new TarefaDAO(getApplicationContext());
+//            TarefaDAO tarefaDAO2 = new TarefaDAO(getApplicationContext());
+
+        if (tarefa == null) {
+            tarefas = tarefaDAO.listar();
+        } else {
+            tarefas.add(tarefa);
+        }
+
+        tarefasPesquisa = tarefaDAO.listar();
+        for (Tarefa t : tarefasPesquisa) {
+            if (!t.getNomeTarefa().equals("")) {
+                nomeDoPesquisadoHashSet.add(t.getNomeTarefa());
+            }
+        }
+
+        nomeDoPesquisado = new ArrayList(nomeDoPesquisadoHashSet);
+        adapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1, nomeDoPesquisado);
+        autoComplete.setAdapter(adapter);
+
+        nomeDoPesquisadoHashSet.clear();
+
+        for (Tarefa t : tarefas) {
+            linearVerticalPai = new LinearLayout(getApplicationContext());
+            linearHorizontalFilho1 = new LinearLayout(getApplicationContext());
+            linearHorizontalFilho2 = new LinearLayout(getApplicationContext());
+            linearVerticalFilho3 = new LinearLayout(getApplicationContext());
+
+            labelNome = new TextView(getApplicationContext());
+            textViewNome = new TextView(getApplicationContext());
 //                textViewNome.setGravity(Gravity.CENTER | Gravity.BOTTOM);
-                textViewNome.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+            textViewNome.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_MULTI_LINE);
 //                textViewNome.setSingleLine(false);
 //                textViewNome.setImeOptions(EditorInfo.IME_FLAG_NO_ENTER_ACTION);
-                dados = new Button(getApplicationContext());
-                foto = new Button(getApplicationContext());
-                mapa = new Button(getApplicationContext());
-                exclui = new Button(getApplicationContext());
+            dados = new Button(getApplicationContext());
+            foto = new Button(getApplicationContext());
+            mapa = new Button(getApplicationContext());
+            exclui = new Button(getApplicationContext());
 
-                linearVerticalPai.setOrientation(LinearLayout.VERTICAL);
-                linearHorizontalFilho1.setOrientation(LinearLayout.HORIZONTAL);
-                linearHorizontalFilho2.setOrientation(LinearLayout.HORIZONTAL);
-                linearVerticalFilho3.setOrientation(LinearLayout.VERTICAL);
+            linearVerticalPai.setOrientation(LinearLayout.VERTICAL);
+            linearHorizontalFilho1.setOrientation(LinearLayout.HORIZONTAL);
+            linearHorizontalFilho2.setOrientation(LinearLayout.HORIZONTAL);
+            linearVerticalFilho3.setOrientation(LinearLayout.VERTICAL);
 
 //            linearHorizontalFilho2setId(View.generateViewId());
-                textViewNome.setText("               "+t.getNomeTarefa());
+            textViewNome.setText("               "+t.getNomeTarefa());
 //                pesquisaNome.add(t.getNomeTarefa());
 //                adapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,pesquisaNome);
 //                autoComplete = findViewById(R.id.pesquisa);
@@ -475,33 +542,33 @@ public class MainActivity extends AppCompatActivity {
 //                autoComplete.setThreshold(1);
 
 //                textViewNome.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_END);
-                labelNome.setText("nome");
-                dados.setText("dados");
-                mapa.setText("mapa");
-                foto.setText("foto");
-                exclui.setText("exclui");
+            labelNome.setText("nome");
+            dados.setText("dados");
+            mapa.setText("mapa");
+            foto.setText("foto");
+            exclui.setText("exclui");
 
-                dados.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
+            dados.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
 //                        String teste = "alves";
-                        ViewGroup row = (ViewGroup) view.getParent().getParent();
-                        Intent intent = new Intent(MainActivity.this, DadosActivity.class);
-                        intent.putExtra("dados", row.getId() );
-                        startActivity( intent );
-                    }
-                });
+                    ViewGroup row = (ViewGroup) view.getParent().getParent();
+                    Intent intent = new Intent(MainActivity.this, DadosActivity.class);
+                    intent.putExtra("dados", row.getId() );
+                    startActivity( intent );
+                }
+            });
 
-                foto.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        //                        String teste = "alves";
-                        ViewGroup row = (ViewGroup) view.getParent().getParent();
-                        Intent intent = new Intent(MainActivity.this, FotoActivity.class);
-                        intent.putExtra("foto", row.getId() );
-                        startActivity( intent );
-                    }
-                });
+            foto.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    //                        String teste = "alves";
+                    ViewGroup row = (ViewGroup) view.getParent().getParent();
+                    Intent intent = new Intent(MainActivity.this, FotoActivity.class);
+                    intent.putExtra("foto", row.getId() );
+                    startActivity( intent );
+                }
+            });
 
 //                mapa.setOnClickListener(new View.OnClickListener() {
 //                    @Override
@@ -514,58 +581,59 @@ public class MainActivity extends AppCompatActivity {
 //                    }
 //                });
 
-                exclui.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
+            exclui.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
 
-                        dialog.setMessage("Deseja realmente excluir esta pesquisa?");
+                    dialog.setMessage("Deseja realmente excluir esta pesquisa?");
 
-                        dialog.setPositiveButton("Sim", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                ViewGroup row = (ViewGroup) view.getParent().getParent();
-                                tarefaDAO.deletar(row.getId());
-                                row.removeAllViews();
+                    dialog.setPositiveButton("Sim", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            ViewGroup row = (ViewGroup) view.getParent().getParent();
+                            tarefaDAO.deletar(row.getId());
+                            row.removeAllViews();
 
-                                Toast.makeText(getApplicationContext(),
-                                        "Pesquisa excluída com sucesso!",
-                                        Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(),
+                                    "Pesquisa excluída com sucesso!",
+                                    Toast.LENGTH_SHORT).show();
 //                        escondeTeclado(v);
-                            }
-                        });
-                        dialog.setNegativeButton("Não", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                ((InputMethodManager) getApplicationContext().getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(view.getWindowToken(), 0);
-                            }
-                        });
-                        //Exibir dialog
-                        dialog.create();
-                        dialog.show();
-                    }
-                });
+                        }
+                    });
+                    dialog.setNegativeButton("Não", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            ((InputMethodManager) getApplicationContext().getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(view.getWindowToken(), 0);
+                        }
+                    });
+                    //Exibir dialog
+                    dialog.create();
+                    dialog.show();
+                }
+            });
 
-                horario = new TextView(getApplicationContext());
-                //            textView.setId(View.generateViewId());
-                horario.setWidth(250);
-                horario.setText(t.getHorarioTarefa());
-                linearHorizontalFilho1.addView(labelNome);
-                linearHorizontalFilho1.addView(textViewNome);
-                linearHorizontalFilho2.addView(horario);
-                linearHorizontalFilho2.addView(foto, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-                linearHorizontalFilho2.addView(exclui, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-                linearVerticalFilho3.addView(dados);
+            horario = new TextView(getApplicationContext());
+            //            textView.setId(View.generateViewId());
+            horario.setWidth(250);
+            horario.setText(t.getHorarioTarefa());
+            linearHorizontalFilho1.addView(labelNome);
+            linearHorizontalFilho1.addView(textViewNome);
+            linearHorizontalFilho2.addView(horario);
+            linearHorizontalFilho2.addView(foto, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+            linearHorizontalFilho2.addView(exclui, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+            linearVerticalFilho3.addView(dados);
 
-                linearVerticalPai.setId(t.getId().intValue());
+            linearVerticalPai.setId(t.getId().intValue());
 
-                linearVerticalPai.addView(linearHorizontalFilho1);
-                linearVerticalPai.addView(linearHorizontalFilho2);
-                linearVerticalPai.addView(linearVerticalFilho3);
+            linearVerticalPai.addView(linearHorizontalFilho1);
+            linearVerticalPai.addView(linearHorizontalFilho2);
+            linearVerticalPai.addView(linearVerticalFilho3);
 //                linearVerticalPai.setVisibility(linearVerticalPai.INVISIBLE);
-                layoutMestre.addView(linearVerticalPai);
-            }
+            layoutMestre.addView(linearVerticalPai);
         }
+
+//        }
 
 //                if (textViewNome.getText().equals("              " + "josue")) {
 //                    Log.i("INFO", "Tarefa salva com sucesso!");
@@ -586,8 +654,6 @@ public class MainActivity extends AppCompatActivity {
 //        textView.setText("josue");
 //        linearHorizontalFilho2addView(textView);
 //        layoutMestre.addView(l);
-
-        super.onStart();
     }
 
     @Override

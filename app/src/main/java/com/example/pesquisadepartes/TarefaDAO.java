@@ -956,6 +956,27 @@ public class TarefaDAO {
         return tarefa;
     }
 
+    public Tarefa obtemNome(String nome) {
+        Tarefa tarefa = new Tarefa();
+
+        String sql = "SELECT * FROM " + DbHelper.TABELA_TAREFAS + " WHERE nome = '" + nome + "';";
+        Cursor c = le.rawQuery(sql, null);
+
+        while ( c.moveToNext() ){
+
+            Integer id = c.getInt( c.getColumnIndex("id") );
+            String nomeTarefa = c.getString( c.getColumnIndex("nome") );
+            String horarioTarefa = c.getString( c.getColumnIndex("horario") );
+
+            tarefa.setId( id );
+            tarefa.setNomeTarefa( nomeTarefa );
+            tarefa.setHorarioTarefa( horarioTarefa );
+//            tarefas.add( tarefa );
+//            Log.i("tarefaDao", tarefa.getFotoTarefa() );
+        }
+        return tarefa;
+    }
+
 //    public boolean atualizarCaminhoFoto(Integer id, String caminho, ContentValues cv) {
 //        try {
 //            String[] args = {id.toString()};
