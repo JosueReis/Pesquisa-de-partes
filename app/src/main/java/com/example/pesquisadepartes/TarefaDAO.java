@@ -956,8 +956,9 @@ public class TarefaDAO {
         return tarefa;
     }
 
-    public Tarefa obtemNome(String nome) {
+    public List<Tarefa> obtemNome(String nome) {
         Tarefa tarefa = new Tarefa();
+        List<Tarefa> tarefas = new ArrayList();
 
         String sql = "SELECT * FROM " + DbHelper.TABELA_TAREFAS + " WHERE nome = '" + nome + "';";
         Cursor c = le.rawQuery(sql, null);
@@ -973,8 +974,9 @@ public class TarefaDAO {
             tarefa.setHorarioTarefa( horarioTarefa );
 //            tarefas.add( tarefa );
 //            Log.i("tarefaDao", tarefa.getFotoTarefa() );
+            tarefas.add(tarefa);
         }
-        return tarefa;
+        return tarefas;
     }
 
 //    public boolean atualizarCaminhoFoto(Integer id, String caminho, ContentValues cv) {

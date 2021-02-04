@@ -68,7 +68,6 @@ public class MainActivity extends AppCompatActivity {
     private AutoCompleteTextView autoComplete;
     private ArrayAdapter<String> adapter;
     Set nomeDoPesquisadoHashSet;
-    int test;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,9 +114,10 @@ public class MainActivity extends AppCompatActivity {
         autoComplete.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Tarefa tarefa = tarefaDAO.obtemNome(autoComplete.getText().toString());
+                List<Tarefa> tarefas = tarefaDAO.obtemNome(autoComplete.getText().toString());
                 layoutMestre.removeAllViews();
-                carregaPesquisas(tarefa);
+                escondeTeclado();
+                carregaPesquisas(tarefas);
             }
         });
 
@@ -136,11 +136,7 @@ public class MainActivity extends AppCompatActivity {
                 layoutMestre.removeAllViews();
                 autoComplete.setText("");
                 carregaPesquisas(null);
-                View v = getCurrentFocus();
-                if (v != null) {
-                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-                }
+                escondeTeclado();
             }
         });
 
@@ -477,24 +473,36 @@ public class MainActivity extends AppCompatActivity {
 //        });
     }
 
+    private void escondeTeclado() {
+        View v = getCurrentFocus();
+        if (v != null) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        }
+    }
+
     @Override
     protected void onStart() {
+        layoutMestre.removeAllViews();
         carregaPesquisas(null);
         super.onStart();
     }
 
-    private void carregaPesquisas(Tarefa tarefa) {
+    private void carregaPesquisas(List<Tarefa> tarefa) {
         pesquisaNome = new ArrayList();
 //        if (a == 0) {
 //            a = 1;
         tarefaDAO = new TarefaDAO(getApplicationContext());
 //            TarefaDAO tarefaDAO2 = new TarefaDAO(getApplicationContext());
-
         if (tarefa == null) {
             tarefas = tarefaDAO.listar();
         } else {
-            tarefas.add(tarefa);
+            for (Tarefa t: tarefa) {
+                tarefas.add(t);
+            }
         }
+
+
 
         tarefasPesquisa = tarefaDAO.listar();
         for (Tarefa t : tarefasPesquisa) {

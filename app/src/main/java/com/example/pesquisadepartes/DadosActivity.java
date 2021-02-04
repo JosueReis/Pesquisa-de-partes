@@ -215,6 +215,21 @@ public class DadosActivity extends AppCompatActivity {
                 dialog.setPositiveButton("Sim", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+
+                        String nome = editTextNome.getText().toString();
+                        String cpf = editTextCpf.getText().toString();
+                        String nascimento = editTextNascimento.getText().toString();
+                        String endereco = editTextEndereco.getText().toString();
+                        String enderecoAbordagem = editTextEnderecoAbordagem.getText().toString();
+                        String telefone = editTextTelefone.getText().toString();
+                        String pai = editTextPai.getText().toString();
+                        String mae = editTextMae.getText().toString();
+                        String numeroTalao = editTextNumeroTalao.getText().toString();
+                        String horaFinal = editTextHoraFinal.getText().toString();
+                        String observacoes = editTextObservacoes.getText().toString();
+
+                        tarefaDAO.atualizarDados(dadosId, nome, cpf, nascimento, endereco, enderecoAbordagem, telefone, pai, mae, numeroTalao, horaFinal, observacoes);
+
                         Intent intent = new Intent(DadosActivity.this, MapsActivity.class);
                         intent.putExtra("dados", dadosId );
                         startActivity( intent );
