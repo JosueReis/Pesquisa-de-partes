@@ -66,6 +66,7 @@ public class FotoActivity extends AppCompatActivity {
     ImageView ivImagem;
     ImageView imageView;
     int fotoId;
+    int teste;
     private final int GALERIA_IMAGENS = 1;
     private final int PERMISSAO_REQUEST = 2;
     private final int TIRAR_FOTO = 3;
