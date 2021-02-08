@@ -17,6 +17,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -26,6 +27,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -47,15 +49,20 @@ import com.github.chrisbanes.photoview.PhotoViewAttacher;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+
+import static com.example.pesquisadepartes.RotacionaImagem.handleSamplingAndRotationBitmap;
+import static com.example.pesquisadepartes.RotacionaImagem.rotateImage;
 
 public class FotoActivity extends AppCompatActivity {
 
     Button btnFoto;
     Button btnGaleria;
     Bitmap imageBitmap;
+    Bitmap bitmap;
     ImageView ivImagem;
     ImageView imageView;
     int fotoId;
@@ -734,6 +741,8 @@ public class FotoActivity extends AppCompatActivity {
                         Uri photoURI = FileProvider.getUriForFile(getBaseContext(),
                                 getBaseContext().getApplicationContext().getPackageName() +
                                         ".provider", arquivoFoto);
+//                        Bitmap b;
+//                        b = handleSamplingAndRotationBitmap(getApplicationContext(), photoURI);
                         takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                         startActivityForResult(takePictureIntent, CAMERA);
 //                    startActivityForResult(takePictureIntent, TIRAR_FOTO);
@@ -775,9 +784,43 @@ public class FotoActivity extends AppCompatActivity {
             c.close();
             Bitmap thumbnail = (BitmapFactory.decodeFile(picturePath));
 //            ivImagem.setImageBitmap(thumbnail);
-            Bitmap b = getResizedBitmap(thumbnail, thumbnail.getWidth()/3,thumbnail.getHeight()/4);
 
-            fotos.add(b);
+//            thumbnail = getResizedBitmap(thumbnail, thumbnail.getWidth()/4,thumbnail.getHeight()/4);
+//            thumbnail = RotacionaImagem.rotateImage(thumbnail, 90);
+//            ExifInterface ei = null;
+//            try {
+//                ei = new ExifInterface(picturePath);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//            int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION,
+//                    ExifInterface.ORIENTATION_UNDEFINED);
+//
+//            switch(orientation) {
+//
+//                case ExifInterface.ORIENTATION_ROTATE_90:
+//                    thumbnail = rotateImage(thumbnail, 90);
+//                    break;
+//
+//                case ExifInterface.ORIENTATION_ROTATE_180:
+//                    thumbnail = rotateImage(thumbnail, 180);
+//                    break;
+//
+//                case ExifInterface.ORIENTATION_ROTATE_270:
+//                    thumbnail = rotateImage(thumbnail, 270);
+//                    break;
+//
+//                case ExifInterface.ORIENTATION_NORMAL:
+//            }
+            Uri arquivo = getUriFromPath(getApplicationContext(), picturePath);
+
+            try {
+                thumbnail = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            fotos.add(thumbnail);
 
             RecyclerView recyclerView = (RecyclerView) findViewById (R.id.recycler);
             FotosAdapter fotosAdapter = new FotosAdapter( this, fotos);
@@ -903,7 +946,6 @@ public class FotoActivity extends AppCompatActivity {
 //        bmOptions.inSampleSize = scaleFactor;
 
 
-        Bitmap bitmap = BitmapFactory.decodeFile(arquivoFoto.getAbsolutePath());
 //        RotateBitmap(bitmap, 90);
 //        Matrix matrix = new Matrix();
 //        matrix.postRotate(270);
@@ -990,9 +1032,23 @@ public class FotoActivity extends AppCompatActivity {
             tarefaDAO.atualizarCaminhoFoto20(fotoId, arquivoFoto.getAbsolutePath());
         }
 
-        Bitmap b = getResizedBitmap(bitmap, bitmap.getWidth()/3,bitmap.getHeight()/4);
+        bitmap = BitmapFactory.decodeFile(arquivoFoto.getAbsolutePath());
+//        bitmap = getResizedBitmap(bitmap, bitmap.getWidth()/4,bitmap.getHeight()/4);
+//        try {
+//            bitmap = RotacionaImagem.handleSamplingAndRotationBitmap(getApplicationContext(), Uri.fromFile(arquivoFoto));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        bitmap = rotateImage(bitmap, 90);
+        Uri arquivo = getUriFromPath(getApplicationContext(), arquivoFoto.getAbsolutePath());
 
-        fotos.add(b);
+        try {
+            bitmap = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        fotos.add(bitmap);
 
         RecyclerView recyclerView = (RecyclerView) findViewById (R.id.recycler);
         FotosAdapter fotosAdapter = new FotosAdapter( this, fotos);
@@ -1064,8 +1120,21 @@ public class FotoActivity extends AppCompatActivity {
         if (!tarefa1.getCaminhoTarefa().equals("")) {
             Bitmap thumbnail1 = (BitmapFactory.decodeFile(tarefa1.getCaminhoTarefa()));
 //            tarefaDAO.atualizarCaminhoFoto1(fotoId, tarefa1.getCaminhoTarefa());
-            Bitmap b = getResizedBitmap(thumbnail1, thumbnail1.getWidth()/3,thumbnail1.getHeight()/4);
-            fotos.add(b);
+//            thumbnail1 = getResizedBitmap(thumbnail1, thumbnail1.getWidth()/4,thumbnail1.getHeight()/4);
+//            try {
+//                thumbnail1 = RotacionaImagem.handleSamplingAndRotationBitmap(getApplicationContext(), Uri.fromFile(arquivoFoto));
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//            thumbnail1 = rotateImage(thumbnail1, 90);
+            Uri arquivo = getUriFromPath(getApplicationContext(), tarefa1.getCaminhoTarefa());
+
+            try {
+                thumbnail1 = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fotos.add(thumbnail1);
         }
 
         Tarefa tarefa2 = tarefaDAO.listarCaminhoFoto2(fotoId);
@@ -1073,8 +1142,17 @@ public class FotoActivity extends AppCompatActivity {
         if (!tarefa2.getCaminhoTarefa().equals("")) {
             Bitmap thumbnail2 = (BitmapFactory.decodeFile(tarefa2.getCaminhoTarefa()));
 //            tarefaDAO.atualizarCaminhoFoto2(fotoId, tarefa2.getCaminhoTarefa());
-            Bitmap b = getResizedBitmap(thumbnail2, thumbnail2.getWidth()/3,thumbnail2.getHeight()/4);
-            fotos.add(b);
+//            thumbnail2 = getResizedBitmap(thumbnail2, thumbnail2.getWidth()/4,thumbnail2.getHeight()/4);
+//            thumbnail2 = rotateImage(thumbnail2, 90);
+//            fotos.add(thumbnail2);
+            Uri arquivo = getUriFromPath(getApplicationContext(), tarefa2.getCaminhoTarefa());
+
+            try {
+                thumbnail2 = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fotos.add(thumbnail2);
         }
 
         Tarefa tarefa3 = tarefaDAO.listarCaminhoFoto3(fotoId);
@@ -1082,8 +1160,16 @@ public class FotoActivity extends AppCompatActivity {
         if (!tarefa3.getCaminhoTarefa().equals("")) {
             Bitmap thumbnail3 = (BitmapFactory.decodeFile(tarefa3.getCaminhoTarefa()));
 //            tarefaDAO.atualizarCaminhoFoto2(fotoId, tarefa2.getCaminhoTarefa());
-            Bitmap b = getResizedBitmap(thumbnail3, thumbnail3.getWidth()/3,thumbnail3.getHeight()/4);
-            fotos.add(b);
+//            Bitmap b = getResizedBitmap(thumbnail3, thumbnail3.getWidth()/3,thumbnail3.getHeight()/4);
+
+            Uri arquivo = getUriFromPath(getApplicationContext(), tarefa3.getCaminhoTarefa());
+
+            try {
+                thumbnail3 = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fotos.add(thumbnail3);
         }
 
         Tarefa tarefa4 = tarefaDAO.listarCaminhoFoto4(fotoId);
@@ -1091,8 +1177,15 @@ public class FotoActivity extends AppCompatActivity {
         if (!tarefa4.getCaminhoTarefa().equals("")) {
             Bitmap thumbnail4 = (BitmapFactory.decodeFile(tarefa4.getCaminhoTarefa()));
 //            tarefaDAO.atualizarCaminhoFoto2(fotoId, tarefa2.getCaminhoTarefa());
-            Bitmap b = getResizedBitmap(thumbnail4, thumbnail4.getWidth()/3,thumbnail4.getHeight()/4);
-            fotos.add(b);
+//            Bitmap b = getResizedBitmap(thumbnail4, thumbnail4.getWidth()/3,thumbnail4.getHeight()/4);
+            Uri arquivo = getUriFromPath(getApplicationContext(), tarefa4.getCaminhoTarefa());
+
+            try {
+                thumbnail4 = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fotos.add(thumbnail4);
         }
 
         Tarefa tarefa5 = tarefaDAO.listarCaminhoFoto5(fotoId);
@@ -1100,8 +1193,15 @@ public class FotoActivity extends AppCompatActivity {
         if (!tarefa5.getCaminhoTarefa().equals("")) {
             Bitmap thumbnail5 = (BitmapFactory.decodeFile(tarefa5.getCaminhoTarefa()));
 //            tarefaDAO.atualizarCaminhoFoto2(fotoId, tarefa2.getCaminhoTarefa());
-            Bitmap b = getResizedBitmap(thumbnail5, thumbnail5.getWidth()/3,thumbnail5.getHeight()/4);
-            fotos.add(b);
+//            Bitmap b = getResizedBitmap(thumbnail5, thumbnail5.getWidth()/3,thumbnail5.getHeight()/4);
+            Uri arquivo = getUriFromPath(getApplicationContext(), tarefa5.getCaminhoTarefa());
+
+            try {
+                thumbnail5 = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fotos.add(thumbnail5);
         }
 
         Tarefa tarefa6 = tarefaDAO.listarCaminhoFoto6(fotoId);
@@ -1109,8 +1209,15 @@ public class FotoActivity extends AppCompatActivity {
         if (!tarefa6.getCaminhoTarefa().equals("")) {
             Bitmap thumbnail6 = (BitmapFactory.decodeFile(tarefa6.getCaminhoTarefa()));
 //            tarefaDAO.atualizarCaminhoFoto2(fotoId, tarefa2.getCaminhoTarefa());
-            Bitmap b = getResizedBitmap(thumbnail6, thumbnail6.getWidth()/3,thumbnail6.getHeight()/4);
-            fotos.add(b);
+//            Bitmap b = getResizedBitmap(thumbnail6, thumbnail6.getWidth()/3,thumbnail6.getHeight()/4);
+            Uri arquivo = getUriFromPath(getApplicationContext(), tarefa6.getCaminhoTarefa());
+
+            try {
+                thumbnail6 = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fotos.add(thumbnail6);
         }
 
         Tarefa tarefa7 = tarefaDAO.listarCaminhoFoto7(fotoId);
@@ -1118,8 +1225,15 @@ public class FotoActivity extends AppCompatActivity {
         if (!tarefa7.getCaminhoTarefa().equals("")) {
             Bitmap thumbnail7 = (BitmapFactory.decodeFile(tarefa7.getCaminhoTarefa()));
 //            tarefaDAO.atualizarCaminhoFoto2(fotoId, tarefa2.getCaminhoTarefa());
-            Bitmap b = getResizedBitmap(thumbnail7, thumbnail7.getWidth()/3,thumbnail7.getHeight()/4);
-            fotos.add(b);
+//            Bitmap b = getResizedBitmap(thumbnail7, thumbnail7.getWidth()/3,thumbnail7.getHeight()/4);
+            Uri arquivo = getUriFromPath(getApplicationContext(), tarefa7.getCaminhoTarefa());
+
+            try {
+                thumbnail7 = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fotos.add(thumbnail7);
         }
 
         Tarefa tarefa8 = tarefaDAO.listarCaminhoFoto8(fotoId);
@@ -1127,8 +1241,15 @@ public class FotoActivity extends AppCompatActivity {
         if (!tarefa8.getCaminhoTarefa().equals("")) {
             Bitmap thumbnail8 = (BitmapFactory.decodeFile(tarefa8.getCaminhoTarefa()));
 //            tarefaDAO.atualizarCaminhoFoto2(fotoId, tarefa2.getCaminhoTarefa());
-            Bitmap b = getResizedBitmap(thumbnail8, thumbnail8.getWidth()/3,thumbnail8.getHeight()/4);
-            fotos.add(b);
+//            Bitmap b = getResizedBitmap(thumbnail8, thumbnail8.getWidth()/3,thumbnail8.getHeight()/4);
+            Uri arquivo = getUriFromPath(getApplicationContext(), tarefa8.getCaminhoTarefa());
+
+            try {
+                thumbnail8 = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fotos.add(thumbnail8);
         }
 
         Tarefa tarefa9 = tarefaDAO.listarCaminhoFoto9(fotoId);
@@ -1136,8 +1257,15 @@ public class FotoActivity extends AppCompatActivity {
         if (!tarefa9.getCaminhoTarefa().equals("")) {
             Bitmap thumbnail9 = (BitmapFactory.decodeFile(tarefa9.getCaminhoTarefa()));
 //            tarefaDAO.atualizarCaminhoFoto2(fotoId, tarefa2.getCaminhoTarefa());
-            Bitmap b = getResizedBitmap(thumbnail9, thumbnail9.getWidth()/3,thumbnail9.getHeight()/4);
-            fotos.add(b);
+//            Bitmap b = getResizedBitmap(thumbnail9, thumbnail9.getWidth()/3,thumbnail9.getHeight()/4);
+            Uri arquivo = getUriFromPath(getApplicationContext(), tarefa9.getCaminhoTarefa());
+
+            try {
+                thumbnail9 = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fotos.add(thumbnail9);
         }
 
         Tarefa tarefa10 = tarefaDAO.listarCaminhoFoto10(fotoId);
@@ -1145,8 +1273,15 @@ public class FotoActivity extends AppCompatActivity {
         if (!tarefa10.getCaminhoTarefa().equals("")) {
             Bitmap thumbnail10 = (BitmapFactory.decodeFile(tarefa10.getCaminhoTarefa()));
 //            tarefaDAO.atualizarCaminhoFoto2(fotoId, tarefa2.getCaminhoTarefa());
-            Bitmap b = getResizedBitmap(thumbnail10, thumbnail10.getWidth()/3,thumbnail10.getHeight()/4);
-            fotos.add(b);
+//            Bitmap b = getResizedBitmap(thumbnail10, thumbnail10.getWidth()/3,thumbnail10.getHeight()/4);
+            Uri arquivo = getUriFromPath(getApplicationContext(), tarefa10.getCaminhoTarefa());
+
+            try {
+                thumbnail10 = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fotos.add(thumbnail10);
         }
 
         Tarefa tarefa11 = tarefaDAO.listarCaminhoFoto11(fotoId);
@@ -1154,8 +1289,15 @@ public class FotoActivity extends AppCompatActivity {
         if (!tarefa11.getCaminhoTarefa().equals("")) {
             Bitmap thumbnail11 = (BitmapFactory.decodeFile(tarefa11.getCaminhoTarefa()));
 //            tarefaDAO.atualizarCaminhoFoto2(fotoId, tarefa2.getCaminhoTarefa());
-            Bitmap b = getResizedBitmap(thumbnail11, thumbnail11.getWidth()/3,thumbnail11.getHeight()/4);
-            fotos.add(b);
+//            Bitmap b = getResizedBitmap(thumbnail11, thumbnail11.getWidth()/3,thumbnail11.getHeight()/4);
+            Uri arquivo = getUriFromPath(getApplicationContext(), tarefa11.getCaminhoTarefa());
+
+            try {
+                thumbnail11 = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fotos.add(thumbnail11);
         }
 
         Tarefa tarefa12 = tarefaDAO.listarCaminhoFoto12(fotoId);
@@ -1163,8 +1305,15 @@ public class FotoActivity extends AppCompatActivity {
         if (!tarefa12.getCaminhoTarefa().equals("")) {
             Bitmap thumbnail12 = (BitmapFactory.decodeFile(tarefa12.getCaminhoTarefa()));
 //            tarefaDAO.atualizarCaminhoFoto2(fotoId, tarefa2.getCaminhoTarefa());
-            Bitmap b = getResizedBitmap(thumbnail12, thumbnail12.getWidth()/3,thumbnail12.getHeight()/4);
-            fotos.add(b);
+//            Bitmap b = getResizedBitmap(thumbnail12, thumbnail12.getWidth()/3,thumbnail12.getHeight()/4);
+            Uri arquivo = getUriFromPath(getApplicationContext(), tarefa12.getCaminhoTarefa());
+
+            try {
+                thumbnail12 = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fotos.add(thumbnail12);
         }
 
         Tarefa tarefa13 = tarefaDAO.listarCaminhoFoto13(fotoId);
@@ -1172,8 +1321,15 @@ public class FotoActivity extends AppCompatActivity {
         if (!tarefa13.getCaminhoTarefa().equals("")) {
             Bitmap thumbnail13 = (BitmapFactory.decodeFile(tarefa13.getCaminhoTarefa()));
 //            tarefaDAO.atualizarCaminhoFoto2(fotoId, tarefa2.getCaminhoTarefa());
-            Bitmap b = getResizedBitmap(thumbnail13, thumbnail13.getWidth()/3,thumbnail13.getHeight()/4);
-            fotos.add(b);
+//            Bitmap b = getResizedBitmap(thumbnail13, thumbnail13.getWidth()/3,thumbnail13.getHeight()/4);
+            Uri arquivo = getUriFromPath(getApplicationContext(), tarefa13.getCaminhoTarefa());
+
+            try {
+                thumbnail13 = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fotos.add(thumbnail13);
         }
 
         Tarefa tarefa14 = tarefaDAO.listarCaminhoFoto14(fotoId);
@@ -1181,8 +1337,15 @@ public class FotoActivity extends AppCompatActivity {
         if (!tarefa14.getCaminhoTarefa().equals("")) {
             Bitmap thumbnail14 = (BitmapFactory.decodeFile(tarefa14.getCaminhoTarefa()));
 //            tarefaDAO.atualizarCaminhoFoto2(fotoId, tarefa2.getCaminhoTarefa());
-            Bitmap b = getResizedBitmap(thumbnail14, thumbnail14.getWidth()/3,thumbnail14.getHeight()/4);
-            fotos.add(b);
+//            Bitmap b = getResizedBitmap(thumbnail14, thumbnail14.getWidth()/3,thumbnail14.getHeight()/4);
+            Uri arquivo = getUriFromPath(getApplicationContext(), tarefa14.getCaminhoTarefa());
+
+            try {
+                thumbnail14 = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fotos.add(thumbnail14);
         }
 
         Tarefa tarefa15 = tarefaDAO.listarCaminhoFoto15(fotoId);
@@ -1190,8 +1353,15 @@ public class FotoActivity extends AppCompatActivity {
         if (!tarefa15.getCaminhoTarefa().equals("")) {
             Bitmap thumbnail15 = (BitmapFactory.decodeFile(tarefa15.getCaminhoTarefa()));
 //            tarefaDAO.atualizarCaminhoFoto2(fotoId, tarefa2.getCaminhoTarefa());
-            Bitmap b = getResizedBitmap(thumbnail15, thumbnail15.getWidth()/3,thumbnail15.getHeight()/4);
-            fotos.add(b);
+//            Bitmap b = getResizedBitmap(thumbnail15, thumbnail15.getWidth()/3,thumbnail15.getHeight()/4);
+            Uri arquivo = getUriFromPath(getApplicationContext(), tarefa15.getCaminhoTarefa());
+
+            try {
+                thumbnail15 = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fotos.add(thumbnail15);
         }
 
         Tarefa tarefa16 = tarefaDAO.listarCaminhoFoto16(fotoId);
@@ -1199,8 +1369,15 @@ public class FotoActivity extends AppCompatActivity {
         if (!tarefa16.getCaminhoTarefa().equals("")) {
             Bitmap thumbnail16 = (BitmapFactory.decodeFile(tarefa16.getCaminhoTarefa()));
 //            tarefaDAO.atualizarCaminhoFoto2(fotoId, tarefa2.getCaminhoTarefa());
-            Bitmap b = getResizedBitmap(thumbnail16, thumbnail16.getWidth()/3,thumbnail16.getHeight()/4);
-            fotos.add(b);
+//            Bitmap b = getResizedBitmap(thumbnail16, thumbnail16.getWidth()/3,thumbnail16.getHeight()/4);
+            Uri arquivo = getUriFromPath(getApplicationContext(), tarefa16.getCaminhoTarefa());
+
+            try {
+                thumbnail16 = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fotos.add(thumbnail16);
         }
 
         Tarefa tarefa17 = tarefaDAO.listarCaminhoFoto17(fotoId);
@@ -1208,8 +1385,15 @@ public class FotoActivity extends AppCompatActivity {
         if (!tarefa17.getCaminhoTarefa().equals("")) {
             Bitmap thumbnail17 = (BitmapFactory.decodeFile(tarefa17.getCaminhoTarefa()));
 //            tarefaDAO.atualizarCaminhoFoto2(fotoId, tarefa2.getCaminhoTarefa());
-            Bitmap b = getResizedBitmap(thumbnail17, thumbnail17.getWidth()/3,thumbnail17.getHeight()/4);
-            fotos.add(b);
+//            Bitmap b = getResizedBitmap(thumbnail17, thumbnail17.getWidth()/3,thumbnail17.getHeight()/4);
+            Uri arquivo = getUriFromPath(getApplicationContext(), tarefa17.getCaminhoTarefa());
+
+            try {
+                thumbnail17 = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fotos.add(thumbnail17);
         }
 
         Tarefa tarefa18 = tarefaDAO.listarCaminhoFoto18(fotoId);
@@ -1217,8 +1401,15 @@ public class FotoActivity extends AppCompatActivity {
         if (!tarefa18.getCaminhoTarefa().equals("")) {
             Bitmap thumbnail18 = (BitmapFactory.decodeFile(tarefa18.getCaminhoTarefa()));
 //            tarefaDAO.atualizarCaminhoFoto2(fotoId, tarefa2.getCaminhoTarefa());
-            Bitmap b = getResizedBitmap(thumbnail18, thumbnail18.getWidth()/3,thumbnail18.getHeight()/4);
-            fotos.add(b);
+//            Bitmap b = getResizedBitmap(thumbnail18, thumbnail18.getWidth()/3,thumbnail18.getHeight()/4);
+            Uri arquivo = getUriFromPath(getApplicationContext(), tarefa18.getCaminhoTarefa());
+
+            try {
+                thumbnail18 = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fotos.add(thumbnail18);
         }
 
         Tarefa tarefa19= tarefaDAO.listarCaminhoFoto19(fotoId);
@@ -1226,8 +1417,15 @@ public class FotoActivity extends AppCompatActivity {
         if (!tarefa19.getCaminhoTarefa().equals("")) {
             Bitmap thumbnail19 = (BitmapFactory.decodeFile(tarefa19.getCaminhoTarefa()));
 //            tarefaDAO.atualizarCaminhoFoto2(fotoId, tarefa2.getCaminhoTarefa());
-            Bitmap b = getResizedBitmap(thumbnail19, thumbnail19.getWidth()/3,thumbnail19.getHeight()/4);
-            fotos.add(b);
+//            Bitmap b = getResizedBitmap(thumbnail19, thumbnail19.getWidth()/3,thumbnail19.getHeight()/4);
+            Uri arquivo = getUriFromPath(getApplicationContext(), tarefa19.getCaminhoTarefa());
+
+            try {
+                thumbnail19 = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fotos.add(thumbnail19);
         }
 
         Tarefa tarefa20 = tarefaDAO.listarCaminhoFoto20(fotoId);
@@ -1235,8 +1433,15 @@ public class FotoActivity extends AppCompatActivity {
         if (!tarefa20.getCaminhoTarefa().equals("")) {
             Bitmap thumbnail20 = (BitmapFactory.decodeFile(tarefa20.getCaminhoTarefa()));
 //            tarefaDAO.atualizarCaminhoFoto2(fotoId, tarefa2.getCaminhoTarefa());
-            Bitmap b = getResizedBitmap(thumbnail20, thumbnail20.getWidth()/3,thumbnail20.getHeight()/4);
-            fotos.add(b);
+//            Bitmap b = getResizedBitmap(thumbnail20, thumbnail20.getWidth()/3,thumbnail20.getHeight()/4);
+            Uri arquivo = getUriFromPath(getApplicationContext(), tarefa20.getCaminhoTarefa());
+
+            try {
+                thumbnail20 = handleSamplingAndRotationBitmap(getApplicationContext(), arquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fotos.add(thumbnail20);
         }
 
 //        GridView gridView = (GridView) findViewById (R.id.recycler);
@@ -1256,6 +1461,7 @@ public class FotoActivity extends AppCompatActivity {
         } else {
             Intent intent = new Intent(FotoActivity.this, ActivityTransitionToActivity.class);
             intent.putExtra("foto", caminho);
+//            intent.putExtra("file", file);
 
             LinearLayout l = (LinearLayout) view;
             ImageView i = (ImageView) l.getChildAt(0);
@@ -1400,6 +1606,16 @@ public class FotoActivity extends AppCompatActivity {
         if (!tarefa20.getCaminhoTarefa().equals("")) {
             tarefaDAO.atualizarCaminhoFoto19(fotoId, tarefa20.getCaminhoTarefa());
             tarefaDAO.atualizarCaminhoFoto20(fotoId, "");
+        }
+    }
+
+    public Uri getUriFromPath(Context context, String destination) {
+        File file =  new File(destination);
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            return FileProvider.getUriForFile(context, context.getPackageName() + ".provider", file);
+        } else {
+            return Uri.fromFile(file);
         }
     }
 }
