@@ -75,6 +75,7 @@ public class FotoActivity extends AppCompatActivity {
     Bitmap fotoSelecionada;
     RecyclerView recyclerView;
     private Animator currentAnimator;
+    int teste;
     // The system "short" animation time duration, in milliseconds. This
     // duration is ideal for subtle animations or animations that occur
     // very frequently.
